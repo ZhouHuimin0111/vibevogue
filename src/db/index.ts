@@ -1,20 +1,39 @@
 import Dexie, { type Table } from 'dexie';
 
-export interface Todo {
+export interface ClothingItem {
   id?: number;
-  title: string;
-  completed: boolean;
+  name: string;
+  category: 'top' | 'bottom' | 'dress' | 'shoes' | 'accessory';
+  imageData: string;
   createdAt: Date;
-  updatedAt: Date;
+}
+
+export interface UserPhoto {
+  id?: number;
+  type: 'model';
+  imageData: string;
+  createdAt: Date;
+}
+
+export interface TryOnResult {
+  id?: number;
+  modelId: number;
+  clothingIds: number[];
+  resultImageUrl: string;
+  createdAt: Date;
 }
 
 export class VibevogueDB extends Dexie {
-  todos!: Table<Todo>;
+  clothing!: Table<ClothingItem>;
+  userPhotos!: Table<UserPhoto>;
+  tryOnResults!: Table<TryOnResult>;
 
   constructor() {
     super('vibevogue');
     this.version(1).stores({
-      todos: '++id, title, completed, createdAt, updatedAt',
+      clothing: '++id, name, category, createdAt',
+      userPhotos: '++id, type, createdAt',
+      tryOnResults: '++id, modelId, createdAt',
     });
   }
 }
