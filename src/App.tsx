@@ -1,32 +1,59 @@
+/**
+ * VibeVogue - Fashion Try-On Application
+ * Main Application Component
+ */
+
 import { useState, useEffect, useRef } from 'react';
 import { liveQuery } from 'dexie';
-import { db, type ClothingItem } from './db';
-import { generateTryOn } from './services/falApi';
+import { GlassPanel, ImageFrame } from './components/ui';
 import { MuchaLoader } from './components/MuchaLoader';
+import './App.css';
+import {
+  db,
+  getModelPhoto,
+  saveModelPhoto,
+  saveOutfitRecord,
+} from './db';
+import { analyzeGarment, virtualTryOn } from './services/aiService';
+import type { WardrobeItem } from './types';
 
 function App() {
+  // State management
+  const [wardrobeItems, setWardrobeItems] = useState<WardrobeItem[]>([]);
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [modelPhoto, setModelPhoto] = useState<string | null>(null);
-  const [selectedClothing, setSelectedClothing] = useState<ClothingItem | null>(null);
-  const [clothingItems, setClothingItems] = useState<ClothingItem[]>([]);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [tryOnResult, setTryOnResult] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState('正在生成穿搭效果...');
+  const [loadingMessage, setLoadingMessage] = useState('Processing...');
   const [error, setError] = useState<string | null>(null);
 
+  // Refs
   const modelInputRef = useRef<HTMLInputElement>(null);
-  const clothingInputRef = useRef<HTMLInputElement>(null);
+  const garmentInputRef = useRef<HTMLInputElement>(null);
 
+  // Load wardrobe data on mount
   useEffect(() => {
-    const clothingSub = liveQuery(() => db.clothing.toArray()).subscribe({
-      next: (items) => setClothingItems(items),
-      error: (err) => console.error('Clothing query error:', err),
+    const wardrobeSub = liveQuery(() => db.wardrobe.toArray()).subscribe({
+      next: (items) => setWardrobeItems(items),
+      error: (err) => console.error('Wardrobe query error:', err),
     });
 
+    loadModelPhoto();
+
     return () => {
-      clothingSub.unsubscribe();
+      wardrobeSub.unsubscribe();
     };
   }, []);
 
+  // Load model photo from database
+  const loadModelPhoto = async () => {
+    const photo = await getModelPhoto();
+    if (photo) {
+      setModelPhoto(photo.imageData);
+    }
+  };
+
+  // Handle model photo selection
   const handleModelPhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -35,24 +62,13 @@ function App() {
     reader.onload = async (event) => {
       const imageData = event.target?.result as string;
       setModelPhoto(imageData);
-
-      const existingPhotos = await db.userPhotos.toArray();
-      const modelPhotoRecord = existingPhotos.find((p) => p.type === 'model');
-
-      if (modelPhotoRecord) {
-        await db.userPhotos.update(modelPhotoRecord.id!, { imageData });
-      } else {
-        await db.userPhotos.add({
-          type: 'model',
-          imageData,
-          createdAt: new Date(),
-        });
-      }
+      await saveModelPhoto(imageData);
     };
     reader.readAsDataURL(file);
   };
 
-  const handleClothingPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle garment photo upload with AI analysis
+  const handleGarmentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -60,79 +76,166 @@ function App() {
     reader.onload = async (event) => {
       const imageData = event.target?.result as string;
 
-      await db.clothing.add({
-        name: file.name.replace(/\.[^/.]+$/, ''),
-        category: 'top',
-        imageData,
-        createdAt: new Date(),
-      });
+      setIsLoading(true);
+      setLoadingMessage('Analyzing garment...');
+      setError(null);
+
+      try {
+        const analysis = await analyzeGarment(imageData);
+        console.log('Garment analyzed:', analysis);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to analyze garment';
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
     };
     reader.readAsDataURL(file);
   };
 
-  const handleStartTryOn = async () => {
+  // Handle item selection for outfit
+  const handleItemSelect = (itemId: number) => {
+    setSelectedItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+    setTryOnResult(null);
+  };
+
+  // Virtual try-on
+  const handleVirtualTryOn = async () => {
     if (!modelPhoto) {
-      setError('请先选择模特照片');
-      return;
-    }
-    if (!selectedClothing) {
-      setError('请先选择衣物照片');
+      setError('Please upload a model photo first');
       return;
     }
 
-    setError(null);
+    const selectedWardrobeItems = wardrobeItems.filter((item) =>
+      selectedItems.has(item.id!)
+    );
+
+    if (selectedWardrobeItems.length === 0) {
+      setError('Please select at least one garment');
+      return;
+    }
+
     setIsLoading(true);
-    setLoadingMessage('正在上传图片...');
+    setLoadingMessage('Generating try-on effect...');
+    setError(null);
 
     try {
-      setLoadingMessage('正在生成穿搭效果，请稍候...');
+      const result = await virtualTryOn(
+        modelPhoto,
+        selectedWardrobeItems[0].imageData
+      );
 
-      const result = await generateTryOn({
-        humanImage: modelPhoto,
-        garmentImage: selectedClothing.imageData,
-        garmentDescription: 'tops',
-      });
+      setTryOnResult(result.imageUrl);
 
-      setPreviewImage(result.image.url);
-
-      await db.tryOnResults.add({
-        modelId: 1,
-        clothingIds: [selectedClothing.id!],
-        resultImageUrl: result.image.url,
-        createdAt: new Date(),
-      });
-
-      setLoadingMessage('穿搭效果已生成！');
+      // Save outfit record
+      await saveOutfitRecord(
+        `Try-on ${new Date().toLocaleDateString('zh-CN')}`,
+        Array.from(selectedItems),
+        'Sunny, 22C',
+        '',
+        '',
+        '',
+        result.imageUrl
+      );
     } catch (err) {
-      const message = err instanceof Error ? err.message : '生成失败，请重试';
+      const message = err instanceof Error ? err.message : 'Failed to generate try-on';
       setError(message);
-      console.error('Try-on error:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSelectClothing = (item: ClothingItem) => {
-    setSelectedClothing(item);
-    setPreviewImage(null);
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-100 to-stone-200">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-stone-800">VibeVogue 穿搭体验</h1>
+    <div className="app">
+      {/* Header */}
+      <header className="app-header">
+        <div className="app-header__content">
+          <h1 className="app-header__title">VibeVogue</h1>
+          <p className="app-header__subtitle">Fashion Try-On Experience</p>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Panel - Photo Selection */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Model Photo Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-lg font-semibold text-stone-700 mb-4">模特照片</h2>
+      {/* Main Content */}
+      <main className="app-main">
+        <div className="app-grid">
+          {/* Left Panel - Wardrobe */}
+          <section className="app-panel app-panel--left">
+            <GlassPanel variant="solid" padding="lg">
+              <div className="panel-header">
+                <h2 className="panel-title">My Wardrobe</h2>
+                <input
+                  type="file"
+                  ref={garmentInputRef}
+                  onChange={handleGarmentUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <button
+                  className="btn btn-outline"
+                  onClick={() => garmentInputRef.current?.click()}
+                >
+                  Add Item
+                </button>
+              </div>
 
+              <div className="wardrobe-grid">
+                {wardrobeItems.length === 0 ? (
+                  <div className="empty-state">
+                    <p>Your wardrobe is empty</p>
+                    <p className="empty-state__hint">Upload a garment photo to begin</p>
+                  </div>
+                ) : (
+                  wardrobeItems.map((item) => (
+                    <ImageFrame
+                      key={item.id}
+                      variant="art-nouveau"
+                      showGrain={true}
+                      decorative={true}
+                    >
+                      <button
+                        className={`wardrobe-item ${selectedItems.has(item.id!) ? 'wardrobe-item--selected' : ''}`}
+                        onClick={() => handleItemSelect(item.id!)}
+                      >
+                        <img
+                          src={item.imageData}
+                          alt={item.name}
+                          className="wardrobe-item__image"
+                        />
+                        <div className="wardrobe-item__overlay">
+                          <span className="wardrobe-item__name">{item.name}</span>
+                          <span className="wardrobe-item__category">{item.category}</span>
+                        </div>
+                        {selectedItems.has(item.id!) && (
+                          <div className="wardrobe-item__check">
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                              <path
+                                fill="currentColor"
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                    </ImageFrame>
+                  ))
+                )}
+              </div>
+            </GlassPanel>
+          </section>
+
+          {/* Center Panel - Model Photo & Actions */}
+          <section className="app-panel app-panel--center">
+            {/* Model Photo */}
+            <GlassPanel variant="solid" padding="lg">
+              <h2 className="panel-title">Model Photo</h2>
               <input
                 type="file"
                 ref={modelInputRef}
@@ -142,185 +245,120 @@ function App() {
               />
 
               {modelPhoto ? (
-                <div className="relative">
-                  <img
-                    src={modelPhoto}
-                    alt="Model"
-                    className="w-full aspect-square object-cover rounded-xl"
-                  />
-                  <button
-                    onClick={() => modelInputRef.current?.click()}
-                    className="absolute bottom-3 right-3 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-sm font-medium text-stone-700 hover:bg-white transition-colors shadow-lg"
-                  >
-                    更换照片
-                  </button>
-                </div>
+                <ImageFrame variant="art-nouveau" aspectRatio="portrait">
+                  <div className="model-photo">
+                    <img
+                      src={modelPhoto}
+                      alt="Model"
+                      className="model-photo__image"
+                    />
+                    <button
+                      className="model-photo__change btn btn-secondary"
+                      onClick={() => modelInputRef.current?.click()}
+                    >
+                      Change Photo
+                    </button>
+                  </div>
+                </ImageFrame>
               ) : (
                 <button
+                  className="upload-zone"
                   onClick={() => modelInputRef.current?.click()}
-                  className="w-full aspect-square border-2 border-dashed border-stone-300 rounded-xl flex flex-col items-center justify-center gap-3 text-stone-400 hover:border-amber-500 hover:text-amber-600 transition-colors"
                 >
-                  <svg
-                    className="w-12 h-12"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg viewBox="0 0 24 24" width="48" height="48">
                     <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      fill="currentColor"
+                      d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
                     />
                   </svg>
-                  <span className="text-sm font-medium">点击上传模特照片</span>
+                  <span>Upload Model Photo</span>
                 </button>
               )}
+            </GlassPanel>
+
+            {/* Action Buttons */}
+            <div className="action-buttons">
+              <button
+                className="btn btn-primary btn-lg"
+                onClick={handleVirtualTryOn}
+                disabled={!modelPhoto || selectedItems.size === 0 || isLoading}
+              >
+                {isLoading ? 'Processing...' : 'Virtual Try-On'}
+              </button>
             </div>
-
-            {/* Clothing Selection Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-stone-700">衣物照片</h2>
-                <input
-                  type="file"
-                  ref={clothingInputRef}
-                  onChange={handleClothingPhotoUpload}
-                  accept="image/*"
-                  className="hidden"
-                />
-                <button
-                  onClick={() => clothingInputRef.current?.click()}
-                  className="px-3 py-1.5 text-sm font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
-                >
-                  + 添加
-                </button>
-              </div>
-
-              {clothingItems.length > 0 ? (
-                <div className="grid grid-cols-3 gap-3">
-                  {clothingItems.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleSelectClothing(item)}
-                      className={`relative aspect-square rounded-lg overflow-hidden transition-all ${
-                        selectedClothing?.id === item.id
-                          ? 'ring-3 ring-amber-500 scale-105'
-                          : 'hover:scale-105 hover:shadow-md'
-                      }`}
-                    >
-                      <img
-                        src={item.imageData}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
-                      {selectedClothing?.id === item.id && (
-                        <div className="absolute inset-0 bg-amber-500/20 flex items-center justify-center">
-                          <svg
-                            className="w-6 h-6 text-amber-600"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-stone-400">
-                  <p className="text-sm">暂无衣物照片</p>
-                  <p className="text-xs mt-1">点击右上角添加</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Center - Action Button */}
-          <div className="lg:col-span-1 flex flex-col items-center justify-center">
-            <button
-              onClick={handleStartTryOn}
-              disabled={!modelPhoto || !selectedClothing || isLoading}
-              className={`px-12 py-5 rounded-2xl text-xl font-bold transition-all shadow-xl ${
-                !modelPhoto || !selectedClothing || isLoading
-                  ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 hover:scale-105 active:scale-95'
-              }`}
-            >
-              {isLoading ? '生成中...' : '开始穿搭'}
-            </button>
-
-            {error && (
-              <div className="mt-4 px-4 py-3 bg-red-50 text-red-600 rounded-xl text-sm text-center max-w-xs">
-                {error}
-              </div>
-            )}
-          </div>
+          </section>
 
           {/* Right Panel - Preview */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg p-6 h-full min-h-96">
-              <h2 className="text-lg font-semibold text-stone-700 mb-4">穿搭预览</h2>
+          <section className="app-panel app-panel--right">
+            <GlassPanel variant="solid" padding="lg">
+              <h2 className="panel-title">Preview</h2>
 
               {isLoading ? (
-                <div className="h-80 flex items-center justify-center">
+                <div className="preview-loading">
                   <MuchaLoader message={loadingMessage} />
                 </div>
-              ) : previewImage ? (
-                <div className="space-y-4">
-                  <img
-                    src={previewImage}
-                    alt="Try-on result"
-                    className="w-full rounded-xl shadow-md"
-                  />
-                  <div className="flex gap-3">
+              ) : tryOnResult ? (
+                <div className="preview-result">
+                  <ImageFrame variant="art-nouveau" aspectRatio="portrait" decorative={true}>
+                    <img
+                      src={tryOnResult}
+                      alt="Try-on result"
+                      className="preview-result__image"
+                    />
+                  </ImageFrame>
+                  <div className="preview-result__actions">
                     <button
+                      className="btn btn-secondary"
                       onClick={() => {
                         const link = document.createElement('a');
-                        link.href = previewImage;
+                        link.href = tryOnResult;
                         link.download = 'vibevogue-result.png';
                         link.click();
                       }}
-                      className="flex-1 px-4 py-2 bg-stone-100 text-stone-700 rounded-lg hover:bg-stone-200 transition-colors text-sm font-medium"
                     >
-                      下载图片
+                      Download
                     </button>
                     <button
-                      onClick={() => setPreviewImage(null)}
-                      className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
+                      className="btn btn-outline"
+                      onClick={() => setTryOnResult(null)}
                     >
-                      重新生成
+                      Clear
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="h-80 border-2 border-dashed border-stone-200 rounded-xl flex flex-col items-center justify-center text-stone-400">
-                  <svg
-                    className="w-16 h-16 mb-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                <div className="preview-empty">
+                  <svg viewBox="0 0 24 24" width="64" height="64">
                     <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      fill="currentColor"
+                      d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
                     />
                   </svg>
-                  <p className="text-sm font-medium">预览区域</p>
-                  <p className="text-xs mt-1">生成穿搭后将显示在这里</p>
+                  <p>Preview Area</p>
+                  <p className="preview-empty__hint">
+                    Generate a try-on to see the result
+                  </p>
                 </div>
               )}
-            </div>
-          </div>
+            </GlassPanel>
+          </section>
         </div>
       </main>
+
+      {/* Error Toast */}
+      {error && (
+        <div className="error-toast">
+          <span>{error}</span>
+          <button onClick={() => setError(null)}>Dismiss</button>
+        </div>
+      )}
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="loading-overlay">
+          <MuchaLoader message={loadingMessage} />
+        </div>
+      )}
     </div>
   );
 }
