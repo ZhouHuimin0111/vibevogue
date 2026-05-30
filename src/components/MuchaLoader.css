@@ -1,0 +1,364 @@
+.mucha-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.mucha-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mucha-svg {
+  width: 200px;
+  height: 280px;
+  filter: drop-shadow(0 0 10px rgba(255, 105, 180, 0.3));
+}
+
+/* Frame animation */
+.frame-rect {
+  animation: frame-pulse 3s ease-in-out infinite;
+}
+
+@keyframes frame-pulse {
+  0%, 100% {
+    opacity: 0.2;
+    stroke-width: 1;
+  }
+  50% {
+    opacity: 0.5;
+    stroke-width: 2;
+  }
+}
+
+/* Hair flowing animation */
+.hair {
+  transform-origin: center top;
+}
+
+.hair-1 {
+  animation: hair-wave 4s ease-in-out infinite;
+}
+
+.hair-2 {
+  animation: hair-wave 4s ease-in-out infinite reverse;
+  animation-delay: 0.5s;
+}
+
+@keyframes hair-wave {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(2px) rotate(1deg);
+  }
+  75% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+}
+
+/* Face gentle sway */
+.face {
+  animation: face-sway 5s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+@keyframes face-sway {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}
+
+/* Eyes blinking */
+.eye {
+  animation: blink 4s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+@keyframes blink {
+  0%, 45%, 55%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.1);
+  }
+}
+
+/* Lips gentle movement */
+.lips {
+  animation: lips-pulse 3s ease-in-out infinite;
+}
+
+@keyframes lips-pulse {
+  0%, 100% {
+    stroke-width: 2;
+    opacity: 1;
+  }
+  50% {
+    stroke-width: 2.5;
+    opacity: 0.8;
+  }
+}
+
+/* Neck subtle movement */
+.neck {
+  animation: neck-sway 6s ease-in-out infinite;
+  transform-origin: center top;
+}
+
+@keyframes neck-sway {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(0.5deg);
+  }
+  75% {
+    transform: rotate(-0.5deg);
+  }
+}
+
+/* Bodice breathing */
+.bodice {
+  animation: bodice-breathe 4s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+@keyframes bodice-breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+}
+
+/* Dress flowers floating */
+.dress-flowers {
+  animation: flowers-float 5s ease-in-out infinite;
+}
+
+.flower {
+  animation: flower-pulse 3s ease-in-out infinite;
+}
+
+.flower-1 {
+  animation-delay: 0s;
+}
+.flower-2 {
+  animation-delay: 0.5s;
+}
+.flower-3 {
+  animation-delay: 1s;
+}
+.flower-4 {
+  animation-delay: 1.5s;
+}
+.flower-5 {
+  animation-delay: 2s;
+}
+
+@keyframes flower-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes flowers-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Vine animations */
+.vine-left-1 {
+  animation: vine-sway-left 4s ease-in-out infinite;
+  transform-origin: 40px 175px;
+}
+
+.vine-right-1 {
+  animation: vine-sway-right 4s ease-in-out infinite;
+  transform-origin: 260px 175px;
+}
+
+@keyframes vine-sway-left {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+@keyframes vine-sway-right {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-2deg);
+  }
+}
+
+/* Berry gentle bounce */
+.berry {
+  animation: berry-bounce 2s ease-in-out infinite;
+}
+
+.berry-1 {
+  animation-delay: 0s;
+}
+.berry-2 {
+  animation-delay: 1s;
+}
+
+@keyframes berry-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Corner ornaments */
+.corner-ornament {
+  animation: ornament-glow 3s ease-in-out infinite;
+}
+
+.top-left {
+  transform-origin: 50px 40px;
+  animation-delay: 0s;
+}
+.top-right {
+  transform-origin: 250px 40px;
+  animation-delay: 1.5s;
+}
+
+@keyframes ornament-glow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+}
+
+/* Sparkles twinkling */
+.sparkle {
+  animation: sparkle-twinkle 2s ease-in-out infinite;
+}
+
+.sparkle-1 {
+  animation-delay: 0s;
+}
+.sparkle-2 {
+  animation-delay: 0.5s;
+}
+.sparkle-3 {
+  animation-delay: 1s;
+}
+.sparkle-4 {
+  animation-delay: 1.5s;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+/* Aura pulsing */
+.aura {
+  animation: aura-pulse 4s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+@keyframes aura-pulse {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.05);
+  }
+}
+
+/* Text styling */
+.mucha-text {
+  text-align: center;
+}
+
+.loading-message {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 1rem;
+  color: #db7093;
+  margin: 0;
+  letter-spacing: 0.15em;
+  font-style: italic;
+}
+
+.loading-hearts {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.heart {
+  animation: heart-beat 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px rgba(255, 105, 180, 0.5));
+}
+
+.heart-1 {
+  animation-delay: 0s;
+}
+.heart-2 {
+  animation-delay: 0.2s;
+}
+.heart-3 {
+  animation-delay: 0.4s;
+}
+
+@keyframes heart-beat {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  15% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  45%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+}
