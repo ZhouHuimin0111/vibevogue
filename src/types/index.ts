@@ -38,6 +38,8 @@ export interface WardrobeItem {
   mainColor: string;
   seasons: Season[];
   styleTags: StyleTag[];
+  utilizationCount: number;
+  dateAdded: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -49,6 +51,23 @@ export interface UserPhoto {
   imageData: string;
   createdAt: Date;
 }
+
+// User Profile for AI Recommendations
+export interface UserProfile {
+  skinTone: SkinTone;
+  bodyShape: BodyShape;
+  mbti?: string;
+  stylePersona?: string;
+  avatarImage?: string;
+}
+
+export interface ExtendedUserProfile extends UserProfile {
+  mood?: string;
+}
+
+export type SkinTone = 'fair' | 'light' | 'medium' | 'tan' | 'dark';
+
+export type BodyShape = 'hourglass' | 'pear' | 'apple' | 'rectangle' | 'inverted-triangle';
 
 // Outfit Record
 export interface OutfitRecord {
@@ -71,6 +90,21 @@ export interface WeatherCondition {
   windSpeed: number;
 }
 
+// AI Recommendation Types
+export interface OutfitRecommendation {
+  top: number | null;
+  bottom: number | null;
+  dress: number | null;
+  shoes: number | null;
+  outerwear: number | null;
+  accessory: number | null;
+  reason: string;
+}
+
+export interface AIRecommendationResult {
+  recommendations: OutfitRecommendation[];
+}
+
 // AI Service Response Types
 export interface OutfitSuggestion {
   reasoning: string;
@@ -82,3 +116,6 @@ export interface OutfitSuggestion {
 export interface TryOnResult {
   imageUrl: string;
 }
+
+// Weather Type
+export type WeatherType = 'sunny' | 'rainy' | 'cloudy' | 'clear';

@@ -1,0 +1,524 @@
+/**
+ * Welcome Modal Styles
+ * Art Nouveau aesthetic with glassmorphism
+ */
+
+/* ============================================
+   Overlay
+   ============================================ */
+
+.welcome-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-6);
+}
+
+/* ============================================
+   Modal Container
+   ============================================ */
+
+.welcome-modal {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: var(--radius-2xl);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(212, 175, 55, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+  animation: modal-enter 0.4s ease-out;
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ============================================
+   Header
+   ============================================ */
+
+.welcome-modal__header {
+  text-align: center;
+  padding: var(--space-8) var(--space-6) var(--space-6);
+  background: linear-gradient(
+    180deg,
+    rgba(212, 175, 55, 0.08) 0%,
+    transparent 100%
+  );
+}
+
+.welcome-modal__logo {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--space-4);
+  background: linear-gradient(135deg, var(--color-gold-500), var(--color-gold-600));
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+}
+
+.welcome-modal__logo span {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.05em;
+}
+
+.welcome-modal__title {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-gold-700);
+  margin: 0 0 var(--space-2) 0;
+  letter-spacing: 0.05em;
+}
+
+.welcome-modal__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ============================================
+   Content
+   ============================================ */
+
+.welcome-modal__content {
+  padding: var(--space-6);
+}
+
+/* Intro Step */
+.welcome-modal__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-6);
+}
+
+.welcome-modal__intro-illustration {
+  opacity: 0.8;
+}
+
+.welcome-modal__intro-text {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  max-width: 360px;
+  margin: 0;
+}
+
+/* MBTI Step */
+.welcome-modal__mbti {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.welcome-modal__progress {
+  height: 4px;
+  background: rgba(212, 175, 55, 0.15);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.welcome-modal__progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-gold-400), var(--color-gold-500));
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease-out;
+}
+
+.welcome-modal__progress-text {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: calc(-1 * var(--space-4));
+}
+
+.welcome-modal__question {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-align: center;
+  margin: 0;
+}
+
+.welcome-modal__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.welcome-modal__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.welcome-modal__option:hover {
+  background: rgba(212, 175, 55, 0.08);
+  border-color: rgba(212, 175, 55, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+}
+
+.welcome-modal__option-icon {
+  font-size: var(--text-2xl);
+  width: 40px;
+  text-align: center;
+}
+
+.welcome-modal__option-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  text-align: left;
+}
+
+.welcome-modal__skip {
+  background: none;
+  border: none;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--space-2);
+  align-self: center;
+  transition: color var(--transition-fast);
+}
+
+.welcome-modal__skip:hover {
+  color: var(--color-gold-600);
+}
+
+/* Avatar Step */
+.welcome-modal__avatar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.welcome-modal__mbti-result {
+  text-align: center;
+  padding: var(--space-4);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(244, 63, 94, 0.05));
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.welcome-modal__mbti-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  background: linear-gradient(135deg, var(--color-gold-500), var(--color-gold-600));
+  color: white;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-2);
+}
+
+.welcome-modal__persona-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-gold-700);
+  margin-bottom: var(--space-2);
+}
+
+.welcome-modal__persona-desc {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.welcome-modal__avatar-upload {
+  display: flex;
+  justify-content: center;
+}
+
+.welcome-modal__avatar-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px dashed rgba(212, 175, 55, 0.3);
+  border-radius: var(--radius-xl);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.welcome-modal__avatar-btn:hover {
+  border-color: var(--color-gold-500);
+  border-style: solid;
+  background: rgba(212, 175, 55, 0.05);
+  color: var(--color-gold-700);
+}
+
+.welcome-modal__avatar-btn svg {
+  color: var(--color-gold-400);
+}
+
+.welcome-modal__avatar-btn span {
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.welcome-modal__avatar-hint {
+  font-size: var(--text-xs) !important;
+  color: var(--color-text-muted) !important;
+  font-weight: 400 !important;
+}
+
+.welcome-modal__generating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-xl);
+}
+
+.welcome-modal__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(212, 175, 55, 0.2);
+  border-top-color: var(--color-gold-500);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.welcome-modal__generating span {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.welcome-modal__avatar-preview {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+.welcome-modal__avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.welcome-modal__avatar-change {
+  position: absolute;
+  bottom: var(--space-2);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-2) var(--space-4);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: var(--text-xs);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.welcome-modal__avatar-preview:hover .welcome-modal__avatar-change {
+  opacity: 1;
+}
+
+/* Mood Input */
+.welcome-modal__mood {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.welcome-modal__mood-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.welcome-modal__mood-label svg {
+  color: var(--color-gold-500);
+}
+
+.welcome-modal__mood-input {
+  padding: var(--space-3);
+  font-size: var(--text-sm);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-primary);
+  transition: all var(--transition-fast);
+}
+
+.welcome-modal__mood-input:focus {
+  outline: none;
+  border-color: var(--color-gold-500);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.welcome-modal__mood-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* ============================================
+   Buttons
+   ============================================ */
+
+.welcome-modal__btn {
+  width: 100%;
+  padding: var(--space-4);
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 600;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.welcome-modal__btn--primary {
+  background: linear-gradient(135deg, var(--color-gold-500), var(--color-gold-600));
+  border: none;
+  color: white;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+}
+
+.welcome-modal__btn--primary:hover {
+  background: linear-gradient(135deg, var(--color-gold-600), var(--color-gold-700));
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.4);
+}
+
+/* ============================================
+   Complete Step
+   ============================================ */
+
+.welcome-modal__complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-4);
+  padding: var(--space-6) 0;
+}
+
+.welcome-modal__complete-icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+  border-radius: 50%;
+  color: #22c55e;
+}
+
+.welcome-modal__complete-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-gold-700);
+  margin: 0;
+}
+
+.welcome-modal__complete-text {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.welcome-modal__complete-persona {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(244, 63, 94, 0.05));
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.welcome-modal__complete-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  background: linear-gradient(135deg, var(--color-gold-500), var(--color-gold-600));
+  color: white;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.welcome-modal__complete-persona-name {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-gold-700);
+}
+
+/* ============================================
+   Decoration
+   ============================================ */
+
+.welcome-modal__decoration {
+  height: 40px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(212, 175, 55, 0.05) 100%
+  );
+}
+
+.welcome-modal__decoration svg {
+  width: 100%;
+  height: 100%;
+}
